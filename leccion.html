@@ -1981,7 +1981,7 @@ html[data-modo="claro"],html[data-modo="oscuro"]{
 header.topbar.topbar-anim{overflow:hidden;will-change:height,opacity,transform}
 .boardhead{transition:padding-left .34s cubic-bezier(.32,.72,0,1)}
 </style>
-<link rel="stylesheet" href="lecciones.css?v=3">
+<link rel="stylesheet" href="lecciones.css?v=4">
 </head>
 <body>
 
@@ -2059,7 +2059,8 @@ header.topbar.topbar-anim{overflow:hidden;will-change:height,opacity,transform}
     <div class="status" id="status"><span class="ico">♟</span><span id="statustext">Encuentra la mejor jugada.</span></div>
 
     <section class="p17-coment" id="p17-coment" aria-live="polite">
-      <div class="p17-c-cab"><span class="p17-c-mov" id="p17-c-mov">Posición inicial</span><span class="p17-c-ev" id="p17-c-ev"></span></div>
+      <div class="p17-c-cab"><span class="p17-c-dice" id="p17-c-dice" hidden>💬 El maestro dice</span><span class="p17-c-mov" id="p17-c-mov">Posición inicial</span><span class="p17-c-ev" id="p17-c-ev"></span></div>
+      <div class="p17-c-q" id="p17-c-q" hidden></div>
       <div class="p17-c-rama" id="p17-c-rama" hidden></div>
       <div class="p17-c-txt" id="p17-c-txt"></div>
       <div class="p17-c-alt" id="p17-c-alt" hidden></div>
@@ -4149,8 +4150,8 @@ const Chess = function (fen) {
 if (typeof window !== 'undefined') { window.Chess = Chess; }
 
 </script>
-<script src="lecciones-data.js?v=3"></script>
-<script src="lecciones.js?v=3"></script>
+<script src="lecciones-data.js?v=4"></script>
+<script src="lecciones.js?v=4"></script>
 <script>
 const PUZZLES = window.P17_LINEAS;
 const LV={F:'Fácil',I:'Intermedio',A:'Avanzado'};
@@ -7841,8 +7842,8 @@ window.PCBackupTools=Object.freeze({makeEnvelope,validateEnvelope,checksum:fnv1a
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
 })();
 </script>
-<script src="lecciones-app.js?v=3"></script>
-<script src="pc-compartir.js?v=3"></script>
-<script src="pc-mascota.js?v=3"></script>
+<script src="lecciones-app.js?v=4"></script>
+<script src="pc-compartir.js?v=4"></script>
+<script src="pc-mascota.js?v=4"></script>
 </body>
 </html>

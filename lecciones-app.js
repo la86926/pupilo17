@@ -13,6 +13,7 @@
   var CAPS = window.P17_CAPS || [];
   var TODAS = PUZZLES;
   var COLORES = { G: '#2E9E5B', R: '#D2504B', B: '#3F72D6', Y: '#E0B12A' };
+  var COLOR_Q = { mala: '#D2504B', dudosa: '#D9738A', interesante: '#3F72D6', buena: '#2E9E5B', brillante: '#169C93' };
 
   function esc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function leerJSON(k, def){ try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? def : v; } catch (e) { return def; } }
@@ -30,6 +31,29 @@
   function resultado(r){ return r === '1-0' ? 'Ganan blancas' : r === '0-1' ? 'Ganan negras' : r === '1/2-1/2' ? 'Tablas' : ''; }
   /* jugada en español con figura: «7...» + ♞b6! */
   function jugadaHTML(pl){ return '<span class="jg">' + esc(pl.m) + figurina(esc(pl.en)) + '</span>'; }
+
+  /* ---------- calidad de la jugada (los signos del maestro: ?? ? ?! !? ! !! □) ----------
+     Las negras son tu bando (Caro-Kann): sus errores son «no lo hagas»;
+     los errores de las blancas son para aprovecharlos. */
+  var CALIDAD = {
+    '??': { c: 'mala', s: '??', n: 'Error grave' },
+    '?':  { c: 'mala', s: '?',  n: 'Error' },
+    '?!': { c: 'dudosa', s: '?!', n: 'Jugada dudosa' },
+    '!?': { c: 'interesante', s: '!?', n: 'Jugada interesante' },
+    '!':  { c: 'buena', s: '!',  n: 'Buena jugada' },
+    '!!': { c: 'brillante', s: '!!', n: 'Jugada brillante' }
+  };
+  function calidad(pl){
+    if (!pl) return null;
+    var m = (String(pl.en || '').match(/[!?]+$/) || [''])[0], q = CALIDAD[m];
+    if (!q && /□/.test(pl.e || '')) q = { c: 'buena', s: '□', n: 'Única jugada' };
+    if (!q) return null;
+    var negras = /\.\.\.$/.test(pl.m), consejo;
+    if (q.c === 'mala' || q.c === 'dudosa') consejo = negras ? (q.c === 'mala' ? 'no la hagas' : 'mejor evítala') : 'error de las blancas: aprovéchalo';
+    else if (q.c === 'interesante') consejo = negras ? 'una idea para probar' : 'idea de las blancas: atento';
+    else consejo = negras ? 'así se juega' : 'buena idea de las blancas: atento';
+    return { c: q.c, s: q.s, n: q.n, consejo: consejo, negras: negras };
+  }
 
   /* ---------- ¿en qué jugada de la línea estamos? ---------- */
   function mismoMovimiento(m, u){ return m && (m.from + m.to) === u.slice(0, 4); }
@@ -113,13 +137,24 @@
     }
     elEv.textContent = ev;
     elRama.hidden = !rama; elRama.textContent = rama;
+    var caja = $('p17-coment'), q = (!pos.fuera && k >= 0) ? calidad(p.pl[k]) : null;
+    var hayCom = !vacio && !pos.fuera;
+    var elQ = $('p17-c-q');
+    elQ.hidden = !q;
+    if (q){ elQ.className = 'p17-c-q q-' + q.c; elQ.innerHTML = '<b>' + esc(q.s) + '</b> ' + esc(q.n) + ' · ' + esc(q.consejo); }
+    caja.classList.remove('con-com', 'q-mala', 'q-dudosa', 'q-interesante', 'q-buena', 'q-brillante');
+    if (hayCom) caja.classList.add('con-com');
+    if (q) caja.classList.add('q-' + q.c);
+    $('p17-c-dice').hidden = !hayCom;
+    llamarAtencion(caja, hayCom || !!q, p.n + ':' + k);
     elTxt.className = 'p17-c-txt' + (vacio ? ' vacio' : '');
     elTxt.innerHTML = html;
     var alt = pos.fuera ? [] : alternativas(p, k), elAlt = $('p17-c-alt');
     elAlt.hidden = !alt.length;
     elAlt.innerHTML = alt.length ? '<span class="et">También aquí:</span>' + alt.map(function(x){
       var pl = x.pl[k];
-      return '<button type="button" class="p17-alt" data-n="' + x.n + '" data-k="' + (k + 1) + '">' + jugadaHTML(pl) + '<small>línea ' + x.li + '</small></button>';
+      var qa = calidad(pl);
+      return '<button type="button" class="p17-alt' + (qa ? ' q-' + qa.c : '') + '" data-n="' + x.n + '" data-k="' + (k + 1) + '">' + jugadaHTML(pl) + '<small>línea ' + x.li + '</small></button>';
     }).join('') : '';
     var t = state.game.turn() === 'w' ? 'Blancas' : 'Negras';
     $('toplay').innerHTML = 'Turno: <b>' + t + '</b>';
@@ -131,15 +166,54 @@
     $('b-ana-next').setAttribute('aria-disabled', finL ? 'true' : 'false');
   }
 
+  /* Cada vez que aparece un comentario nuevo (o una jugada buena/mala), el recuadro
+     late un momento; si está fuera de la pantalla, sale un aviso abajo para ir a él. */
+  var ultimoAviso = '', relojAviso = null;
+  function llamarAtencion(caja, si, clave){
+    if (!si){ ocultarAviso(); return; }
+    if (clave === ultimoAviso) return;
+    ultimoAviso = clave;
+    caja.classList.remove('late'); void caja.offsetWidth; caja.classList.add('late');
+    var r = caja.getBoundingClientRect(), vh = window.innerHeight || document.documentElement.clientHeight;
+    if (r.top > vh - 60 || r.bottom < 60) mostrarAviso(); else ocultarAviso();
+  }
+  function aviso(){
+    var a = $('p17-aviso-com');
+    if (!a){
+      a = document.createElement('button');
+      a.id = 'p17-aviso-com'; a.type = 'button'; a.className = 'p17-aviso-com';
+      a.innerHTML = '<span aria-hidden="true">💬</span> El maestro comenta';
+      a.onclick = function(){ ocultarAviso(); var c = $('p17-coment'); try { c.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { c.scrollIntoView(); } };
+      document.body.appendChild(a);
+    }
+    return a;
+  }
+  function mostrarAviso(){ var a = aviso(); a.classList.add('ver'); clearTimeout(relojAviso); relojAviso = setTimeout(ocultarAviso, 4500); }
+  function ocultarAviso(){ var a = $('p17-aviso-com'); if (a) a.classList.remove('ver'); clearTimeout(relojAviso); }
+  window.addEventListener('scroll', function(){
+    var a = $('p17-aviso-com'); if (!a || !a.classList.contains('ver')) return;
+    var r = $('p17-coment').getBoundingClientRect();
+    if (r.top < (window.innerHeight - 60) && r.bottom > 60) ocultarAviso();
+  }, { passive: true });
+
   /* ---------- flechas y casillas del maestro ---------- */
   function pintarMarcas(){
     var p = curr(); if (!p) return;
     var vieja = boardEl.querySelector('.p17-capa'); if (vieja) vieja.remove();
     var pos = enLinea(); if (pos.fuera) return;
+    var insignia = '';
+    if (pos.k >= 0){
+      var qq = calidad(p.pl[pos.k]);
+      if (qq){
+        var a0 = anotCoord(p.u[pos.k].slice(2, 4)), cx = a0.x + 0.34, cy = a0.y - 0.34;
+        insignia = '<g class="p17-insignia"><circle cx="' + cx + '" cy="' + cy + '" r=".24" fill="' + COLOR_Q[qq.c] + '" stroke="#fff" stroke-width=".04"/>' +
+          '<text x="' + cx + '" y="' + (cy + 0.085) + '" text-anchor="middle" font-size="' + (qq.s.length > 1 ? '.21' : '.26') + '" font-weight="800" font-family="-apple-system,Segoe UI,Roboto,sans-serif" fill="#fff">' + esc(qq.s) + '</text></g>';
+      }
+    }
     var fl, cs;
     if (pos.k < 0){ fl = p.cap.introA || []; cs = p.cap.introQ || []; }
     else { var pl = p.pl[pos.k]; fl = (pl.a || []).concat(pl.pa || []); cs = (pl.q || []).concat(pl.pq || []); }
-    if (!fl.length && !cs.length) return;
+    if (!fl.length && !cs.length && !insignia) return;
     var trozos = '';
     cs.forEach(function(x){
       var col = COLORES[x[0]] || COLORES.G, sq = x.slice(1, 3), a = anotCoord(sq);
@@ -155,7 +229,7 @@
     svg.setAttribute('class', 'p17-capa');
     svg.setAttribute('aria-hidden', 'true');
     svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6';
-    svg.innerHTML = trozos;
+    svg.innerHTML = trozos + insignia;
     boardEl.appendChild(svg);
   }
 
@@ -179,7 +253,8 @@
         if (p.br > 0 && k === p.br) html += '<span class="p17-rama">variante</span>';
         if (k % 2 === 0) html += '<span class="num">' + (k / 2 + 1) + '.</span>';
         else if (p.br > 0 && k === p.br) html += '<span class="num">' + ((k + 1) / 2) + '...</span>';
-        var cls = 'ply ' + (k % 2 === 0 ? 'u' : 'o') + (k === cur - 1 ? ' now' : '') + (k >= cur ? ' fut' : '') + ((pl.c || pl.p) ? ' cm' : '');
+        var qk = calidad(pl);
+        var cls = 'ply ' + (k % 2 === 0 ? 'u' : 'o') + (k === cur - 1 ? ' now' : '') + (k >= cur ? ' fut' : '') + ((pl.c || pl.p) ? ' cm' : '') + (qk ? ' q-' + qk.c : '');
         html += '<span class="' + cls + '" data-k="' + k + '">' + figurina(esc(p.ln[k])) + (pl.e ? '<span class="p17-ev">' + esc(pl.e) + '</span>' : '') + '</span> ';
       }
       ml.innerHTML = html;
@@ -226,7 +301,8 @@
       if (x.li === 1) nombre = 'Línea principal';
       else {
         var partes = x.nm.split(' › ');
-        nombre = (partes.length > 1 ? '<i>' + esc(partes.slice(0, -1).join(' › ')) + ' › </i>' : '') + esc(partes[partes.length - 1]);
+        var qv = calidad(x.pl[x.br]);
+        nombre = (partes.length > 1 ? '<i>' + esc(partes.slice(0, -1).join(' › ')) + ' › </i>' : '') + '<span class="' + (qv ? 'q-' + qv.c : '') + '">' + esc(partes[partes.length - 1]) + '</span>';
       }
       h += '<button class="p17-li' + (x.li === 1 ? ' principal' : '') + (x.n === p.n ? ' on' : '') + '" type="button" data-n="' + x.n + '" title="' + esc(x.li === 1 ? 'Línea principal' : x.nm) + '">' +
            '<span class="n">' + x.li + '</span><span class="t">' + nombre + '</span><span class="ok">' + (solved.has(x.n) ? '✓' : '') + '</span></button>';
@@ -430,7 +506,7 @@
     var h = '<div class="p17-ex">', sueltas = [];
     function volcar(){ if (sueltas.length){ h += '<div class="p17-ex-paso sin"><div class="p17-ex-inline">' + sueltas.join(' ') + '</div></div>'; sueltas = []; } }
     for (var k = 0; k < p.u.length; k++){
-      var pl = p.pl[k], mov = esc(pl.m + pl.s) + (pl.e ? ' ' + esc(pl.e) : '');
+      var pl = p.pl[k], qe = calidad(pl), mov = '<span class="' + (qe ? 'q-' + qe.c : '') + '">' + esc(pl.m + pl.s) + '</span>' + (pl.e ? ' ' + esc(pl.e) : '');
       if (p.br > 0 && k === p.br){ volcar(); h += '<div class="p17-ex-sep">↳ Aquí empieza la variante</div>'; }
       if (pl.c || pl.p || k === pos.k){
         volcar();

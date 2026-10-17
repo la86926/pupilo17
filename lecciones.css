@@ -87,3 +87,60 @@ html[data-modo="oscuro"] .p17-li .ok{color:var(--acento-txt-osc,var(--gold))}
 /* el botón de la carita de la mascota se oculta junto con el encabezado («Ocultar») */
 html[data-barra="oculta"] .pcm-boton{display:none!important}
 .p17-c-alt[hidden]{display:none}
+
+/* ---- el comentario del maestro llama la atención ---- */
+.p17-coment{transition:border-color .25s,background .25s,box-shadow .25s}
+.p17-coment.con-com{
+  border-color:var(--acento-tema,#53707F);
+  background:color-mix(in srgb,var(--acento-tema,#53707F) 9%,var(--panel));
+  box-shadow:0 0 0 1px var(--acento-tema,#53707F),var(--s2)}
+.p17-c-dice{display:inline-flex;align-items:center;padding:.12rem .55rem;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.02em;
+  background:var(--acento-tema,#53707F);color:var(--acento-ink,#fff)}
+.p17-c-dice[hidden],.p17-c-q[hidden]{display:none}
+.p17-coment.late{animation:p17Late .9s cubic-bezier(.2,.8,.2,1)}
+@keyframes p17Late{
+  0%{transform:scale(.985)}
+  35%{transform:scale(1.012);box-shadow:0 0 0 5px color-mix(in srgb,var(--acento-tema,#53707F) 32%,transparent),var(--s2)}
+  100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.p17-coment.late{animation:none}}
+
+/* ---- buenas y malas jugadas: rojo = no lo hagas, verde = así se juega ---- */
+.p17-c-q{display:inline-block;margin-top:.45rem;padding:.28rem .65rem;border-radius:10px;font-size:.82rem;font-weight:600;color:#fff}
+.p17-c-q b{font-family:var(--mono);margin-right:.15rem}
+.p17-c-q.q-mala{background:#D2504B}
+.p17-c-q.q-dudosa{background:#D9738A}
+.p17-c-q.q-interesante{background:#3F72D6}
+.p17-c-q.q-buena{background:#2E9E5B}
+.p17-c-q.q-brillante{background:#169C93}
+.p17-coment.q-mala{border-color:#D2504B;box-shadow:0 0 0 1px #D2504B,var(--s2);background:color-mix(in srgb,#D2504B 8%,var(--panel))}
+.p17-coment.q-dudosa{border-color:#D9738A;box-shadow:0 0 0 1px #D9738A,var(--s2);background:color-mix(in srgb,#D9738A 8%,var(--panel))}
+.p17-coment.q-buena{border-color:#2E9E5B;box-shadow:0 0 0 1px #2E9E5B,var(--s2);background:color-mix(in srgb,#2E9E5B 8%,var(--panel))}
+.p17-coment.q-brillante{border-color:#169C93;box-shadow:0 0 0 1px #169C93,var(--s2);background:color-mix(in srgb,#169C93 8%,var(--panel))}
+.p17-coment.q-interesante{border-color:#3F72D6;box-shadow:0 0 0 1px #3F72D6,var(--s2);background:color-mix(in srgb,#3F72D6 7%,var(--panel))}
+.moves .ply.q-mala,.moves .ply.q-dudosa{color:#C2413C!important}
+.moves .ply.q-buena,.moves .ply.q-brillante{color:#22874D!important}
+.moves .ply.q-interesante{color:#3563C4!important}
+html[data-modo="oscuro"] .moves .ply.q-mala,html[data-modo="oscuro"] .moves .ply.q-dudosa{color:#F08A85!important}
+html[data-modo="oscuro"] .moves .ply.q-buena,html[data-modo="oscuro"] .moves .ply.q-brillante{color:#6FD39A!important}
+html[data-modo="oscuro"] .moves .ply.q-interesante{color:#8FB0F2!important}
+.moves .ply.now.q-mala,.moves .ply.now.q-dudosa{background:#D2504B!important;color:#fff!important}
+.moves .ply.now.q-buena,.moves .ply.now.q-brillante{background:#2E9E5B!important;color:#fff!important}
+.moves .ply.now.q-interesante{background:#3F72D6!important;color:#fff!important}
+.p17-li .q-mala,.p17-li .q-dudosa,.p17-ex-mov .q-mala,.p17-ex-mov .q-dudosa{color:#C2413C}
+.p17-li .q-buena,.p17-li .q-brillante,.p17-ex-mov .q-buena,.p17-ex-mov .q-brillante{color:#22874D}
+.p17-li .q-interesante,.p17-ex-mov .q-interesante{color:#3563C4}
+html[data-modo="oscuro"] .p17-li .q-mala,html[data-modo="oscuro"] .p17-li .q-dudosa{color:#F08A85}
+html[data-modo="oscuro"] .p17-li .q-buena,html[data-modo="oscuro"] .p17-li .q-brillante{color:#6FD39A}
+
+/* aviso abajo cuando el comentario está fuera de la pantalla */
+.p17-aviso-com{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9000;transform:translate(-50%,24px);opacity:0;pointer-events:none;
+  display:flex;align-items:center;gap:.45rem;padding:.6rem 1rem;border:0;border-radius:999px;
+  background:var(--acento-tema,#53707F);color:var(--acento-ink,#fff);font:700 .88rem var(--sans);box-shadow:0 10px 26px rgba(0,0,0,.25);
+  transition:opacity .25s,transform .3s cubic-bezier(.32,.72,0,1);cursor:pointer}
+.p17-aviso-com.ver{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.p17-alt.q-mala,.p17-alt.q-dudosa{border-color:#D2504B;color:#B83A35;background:color-mix(in srgb,#D2504B 9%,transparent)}
+.p17-alt.q-buena,.p17-alt.q-brillante{border-color:#2E9E5B;color:#1F7D47;background:color-mix(in srgb,#2E9E5B 9%,transparent)}
+.p17-alt.q-interesante{border-color:#3F72D6;color:#3159B0;background:color-mix(in srgb,#3F72D6 8%,transparent)}
+html[data-modo="oscuro"] .p17-alt.q-mala,html[data-modo="oscuro"] .p17-alt.q-dudosa{color:#F08A85}
+html[data-modo="oscuro"] .p17-alt.q-buena,html[data-modo="oscuro"] .p17-alt.q-brillante{color:#6FD39A}
+html[data-modo="oscuro"] .p17-alt.q-interesante{color:#8FB0F2}
