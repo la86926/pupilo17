@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es" data-modo="oscuro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0F1411">
+<title>Pupilo 17 · Variante Karpov</title>
+<meta name="apple-mobile-web-app-title" content="Pupilo 17">
+<meta name="application-name" content="Pupilo 17">
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="apple-touch-icon" href="logo-180.png">
+<script>
+/* Fija la apariencia antes del primer pintado. Lee localStorage y, si no hay, cookie. */
+(function(){
+  function g(k){
+    try{var v=localStorage.getItem(k); if(v)return v;}catch(e){}
+    try{var m=document.cookie.match('(?:^|; )'+k+'=([^;]*)'); if(m)return decodeURIComponent(m[1]);}catch(e){}
+    return null;
+  }
+  try{
+    var m=g('pc_modo')||'sistema';
+    var osc = m==='oscuro' || (m==='sistema' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.setAttribute('data-modo', osc?'oscuro':'claro');
+  }catch(e){document.documentElement.setAttribute('data-modo','oscuro');}
+})();
+</script>
+<style>
+/* ==================================================================
+   Pupilo 17 · menú de lecciones
+   Copia del selector del Método PC1 y PC2 (repo chess): mismos tokens,
+   mismas formas, mismo interruptor de apariencia y mismo tutorial.
+   ================================================================== */
+:root{
+  --r-cap:999px; --r-ico:14px; --r-card:20px; --r-box:26px;
+  --serif:Charter,"Bitstream Charter","Sitka Text",Cambria,"Iowan Old Style",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Roboto Mono",monospace;
+}
+html,html[data-modo="oscuro"]{
+  color-scheme:dark;
+  --bg:#0F1411; --hondo:#0A0E0C; --panel:#171E1A; --panel2:#212B25;
+  --line:rgba(233,238,231,.13); --line-viva:rgba(233,238,231,.26);
+  --ink:#E9EEE7; --muted:#A4AFA6; --muted2:#7E887F;
+  --crest:#E96A45; --gold:#E2B65F;
+  --tinte-oro:rgba(226,182,95,.14); --tinte-neutro:rgba(233,238,231,.05);
+  --velo:rgba(6,9,7,.66);
+  --s1:0 1px 2px rgba(0,0,0,.3);
+  --s2:0 6px 18px -8px rgba(0,0,0,.6);
+  --s4:0 34px 80px -30px rgba(0,0,0,.9);
+  --luz-interna:inset 0 1px 0 rgba(233,238,231,.06);
+}
+html[data-modo="claro"]{
+  color-scheme:light;
+  --bg:#EEF1EB; --hondo:#E6EAE3; --panel:#FDFEFB; --panel2:#FFFFFF;
+  --line:rgba(21,28,24,.11); --line-viva:rgba(21,28,24,.24);
+  --ink:#151C18; --muted:#556055; --muted2:#737D73;
+  --crest:#B24019; --gold:#87621A;
+  --tinte-oro:rgba(135,98,26,.09); --tinte-neutro:rgba(21,28,24,.035);
+  --velo:rgba(26,32,28,.4);
+  --s1:0 1px 2px rgba(24,31,26,.07);
+  --s2:0 10px 24px -12px rgba(24,31,26,.18);
+  --s4:0 36px 84px -34px rgba(24,31,26,.36);
+  --luz-interna:inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--sans)}
+.app-frame{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;border:0;background:var(--bg);display:none}
+.app-frame.active{display:block}
+
+/* botón de menú: cuadrado redondeado, igual que los botones de icono de la app */
+.menu-button{
+  position:fixed;left:calc(11px + env(safe-area-inset-left));top:calc(11px + env(safe-area-inset-top));
+  z-index:10020;width:44px;height:44px;padding:0;cursor:pointer;
+  border:1px solid var(--line);border-radius:var(--r-ico);
+  background:var(--panel);color:var(--ink);
+  box-shadow:var(--s2),var(--luz-interna);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .14s,border-color .2s,color .2s,background .2s
+}
+.menu-button:active{transform:scale(.94)}
+.menu-button span,.menu-button:before,.menu-button:after{
+  content:"";display:block;position:absolute;width:18px;height:1.7px;border-radius:2px;
+  background:currentColor;transition:transform .2s cubic-bezier(.2,.8,.2,1),opacity .16s
+}
+.menu-button span{transform:translateY(0)}
+.menu-button:before{transform:translateY(-6px)}
+.menu-button:after{transform:translateY(6px)}
+.menu-button.open{border-color:var(--crest);color:var(--crest)}
+.menu-button.open span{opacity:0}
+.menu-button.open:before{transform:rotate(45deg)}
+.menu-button.open:after{transform:rotate(-45deg)}
+
+.drawer-backdrop{
+  position:fixed;top:0;right:0;bottom:0;left:0;z-index:10000;background:var(--velo);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  opacity:0;visibility:hidden;transition:opacity .22s,visibility .22s
+}
+.drawer-backdrop.open{opacity:1;visibility:visible}
+.drawer{
+  position:absolute;left:0;top:0;bottom:0;width:min(86vw,352px);
+  display:flex;flex-direction:column;
+  background:var(--panel);border-right:1px solid var(--line);
+  box-shadow:var(--s4);
+  transform:translateX(-102%);transition:transform .28s cubic-bezier(.2,.8,.2,1);
+  padding:calc(72px + env(safe-area-inset-top)) 18px calc(20px + env(safe-area-inset-bottom))
+}
+.drawer-backdrop.open .drawer{transform:translateX(0)}
+
+.drawer-brand{
+  display:flex;align-items:center;gap:12px;padding:0 2px 16px;margin-bottom:14px;
+  border-bottom:1px solid var(--line);
+  opacity:0;transform:translateX(-8px);transition:opacity .3s cubic-bezier(.2,.8,.2,1),transform .3s cubic-bezier(.2,.8,.2,1)
+}
+.drawer-backdrop.open .drawer-brand{opacity:1;transform:none}
+.drawer-brand img{
+  width:42px;height:42px;object-fit:contain;padding:6px;border-radius:var(--r-ico);
+  background:var(--tinte-neutro);box-shadow:inset 0 0 0 1px var(--line)
+}
+.drawer-brand strong{display:block;font-family:var(--serif);font-size:1.3rem;font-weight:600;letter-spacing:-.01em;line-height:1.05}
+.drawer-brand small{
+  display:block;margin-top:5px;font-family:var(--mono);font-size:.58rem;font-weight:400;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted2)
+}
+
+/* interruptor de apariencia: idéntico al de los métodos */
+.tema{display:flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:var(--r-cap);background:var(--tinte-neutro);margin-bottom:16px;align-self:flex-start}
+.tema button{
+  width:34px;height:28px;padding:0;border:0;border-radius:var(--r-cap);background:transparent;
+  color:var(--muted2);display:grid;place-items:center;cursor:pointer;transition:background .2s,color .2s
+}
+.tema button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.tema button:hover{color:var(--ink)}
+.tema button[aria-pressed="true"]{background:var(--panel2);color:var(--ink);box-shadow:var(--s1)}
+
+/* las secciones, como tarjetas */
+.app-choice{
+  position:relative;width:100%;margin:0 0 10px;cursor:pointer;text-align:left;touch-action:manipulation;
+  display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;
+  padding:16px 16px;
+  border:1px solid var(--line);border-radius:var(--r-card);
+  background:var(--tinte-neutro);color:var(--ink);
+  font-family:var(--sans);font-size:1rem;font-weight:600;
+  box-shadow:var(--s1);
+  opacity:0;transform:translateX(-10px);
+  transition:opacity .3s cubic-bezier(.2,.8,.2,1) .05s,transform .3s cubic-bezier(.2,.8,.2,1) .05s,
+             background .18s,border-color .18s,box-shadow .18s
+}
+.drawer-backdrop.open .app-choice{opacity:1;transform:none}
+.drawer-backdrop.open .app-choice[data-app="3"]{transition-delay:.11s}
+.drawer-backdrop.open .app-choice[data-app="1"]{transition-delay:.17s}
+.drawer-backdrop.open .app-choice[data-app="2"]{transition-delay:.23s}
+.app-choice > span{display:block;min-width:0;font-family:var(--serif);font-size:1.16rem;font-weight:600;letter-spacing:-.01em;line-height:1.15}
+.app-choice br{display:none}
+.app-choice small{
+  display:block;margin-top:6px;font-family:var(--mono);font-size:.6rem;font-weight:400;
+  letter-spacing:.1em;text-transform:uppercase;line-height:1.4;color:var(--muted2)
+}
+.app-choice:not(.active):hover{border-color:var(--line-viva);background:var(--panel2);box-shadow:var(--s2)}
+.app-choice:not(.active):active{transform:scale(.995)}
+.app-choice.active{
+  border-color:var(--gold);background:var(--tinte-oro);box-shadow:var(--s1),0 0 0 1px var(--gold)
+}
+.app-choice.active > span{color:var(--gold)}
+.app-choice.active:after{
+  content:"activo";
+  font-family:var(--mono);font-size:.56rem;font-weight:400;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--gold);border-radius:var(--r-cap);padding:.3em .6em;white-space:nowrap
+}
+.drawer-note{
+  margin:auto 2px 0;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--muted2);font-family:var(--mono);font-size:.61rem;line-height:1.8;letter-spacing:.05em;
+  opacity:0;transform:translateX(-8px);
+  transition:opacity .3s cubic-bezier(.2,.8,.2,1) .16s,transform .3s cubic-bezier(.2,.8,.2,1) .16s
+}
+.drawer-backdrop.open .drawer-note{opacity:1;transform:none}
+.drawer-note:before{
+  content:"";display:block;width:88px;height:10px;margin:0 0 14px;border-radius:1px;
+  background-image:
+    linear-gradient(90deg,transparent 55px,var(--crest) 55px 66px,transparent 66px),
+    repeating-linear-gradient(90deg,var(--line-viva) 0 11px,transparent 11px 22px)
+}
+.menu-button:focus-visible,.app-choice:focus-visible,.tema button:focus-visible{outline:2px solid var(--crest);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+@media(max-width:480px){
+  .menu-button{left:calc(8px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));width:41px;height:41px}
+  .drawer{padding-left:15px;padding-right:15px;padding-top:calc(64px + env(safe-area-inset-top))}
+  .drawer-brand strong{font-size:1.2rem}
+}
+@media(prefers-reduced-motion:reduce){
+  .drawer,.drawer-backdrop,.drawer-brand,.drawer-note,.app-choice,
+  .menu-button,.menu-button span,.menu-button:before,.menu-button:after{transition-duration:.01ms}
+  .menu-button:active,.app-choice:active{transform:none}
+}
+
+/* ---- Tutorial de bienvenida (solo usuarios nuevos) ---- */
+.tuto{position:fixed;inset:0;z-index:10990;pointer-events:none;display:none}
+.tuto.open{display:block}
+.tuto-velo{position:absolute;inset:0;background:rgba(6,9,7,.62);transition:opacity .25s}
+.tuto.con-foco .tuto-velo{opacity:0}
+.tuto-foco{position:absolute;border-radius:16px;box-shadow:0 0 0 9999px rgba(6,9,7,.62),0 0 0 3px var(--tuto-acento,var(--gold));transition:left .35s cubic-bezier(.2,.8,.2,1),top .35s cubic-bezier(.2,.8,.2,1),width .35s cubic-bezier(.2,.8,.2,1),height .35s cubic-bezier(.2,.8,.2,1),opacity .2s;opacity:0}
+.tuto.con-foco .tuto-foco{opacity:1}
+.tuto-foco:after{content:"";position:absolute;inset:-7px;border-radius:20px;border:2px solid var(--tuto-acento,var(--gold));animation:tutoPulso 1.6s ease-out infinite}
+@keyframes tutoPulso{0%{opacity:.9;transform:scale(.97)}100%{opacity:0;transform:scale(1.08)}}
+.tuto-mano{position:absolute;left:0;top:0;width:54px;height:54px;margin:-4px 0 0 -18px;font-size:46px;line-height:1;filter:drop-shadow(0 6px 8px rgba(0,0,0,.45));opacity:0;transition:opacity .2s;will-change:transform}
+.tuto-mano.ver{opacity:1}
+.tuto-mano.toque{animation:tutoToque 1.25s ease-in-out infinite}
+.tuto-mano.saludo{animation:tutoSaludo 1.6s ease-in-out infinite;transform-origin:60% 90%}
+.tuto-mano.arrastre{animation:tutoArrastre 2.4s cubic-bezier(.45,.05,.3,1) infinite}
+@keyframes tutoToque{0%,100%{transform:translate(var(--x),var(--y)) scale(1)}45%{transform:translate(var(--x),calc(var(--y) + 10px)) scale(.86)}60%{transform:translate(var(--x),calc(var(--y) + 10px)) scale(.86)}}
+@keyframes tutoSaludo{0%,100%{transform:translate(var(--x),var(--y)) rotate(0)}25%{transform:translate(var(--x),var(--y)) rotate(-16deg)}75%{transform:translate(var(--x),var(--y)) rotate(16deg)}}
+@keyframes tutoArrastre{0%{transform:translate(var(--x),var(--y)) scale(1);opacity:0}10%{opacity:1}22%{transform:translate(var(--x),calc(var(--y) + 8px)) scale(.86)}70%{transform:translate(var(--x2),calc(var(--y2) + 8px)) scale(.86);opacity:1}85%{transform:translate(var(--x2),var(--y2)) scale(1);opacity:1}100%{transform:translate(var(--x2),var(--y2)) scale(1);opacity:0}}
+.tuto-ficha{position:absolute;left:0;top:0;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#d9d4c6);box-shadow:0 6px 14px rgba(0,0,0,.4);display:grid;place-items:center;font-size:26px;color:#1b1b1b;opacity:0}
+.tuto-ficha.ver{animation:tutoFicha 2.4s cubic-bezier(.45,.05,.3,1) infinite}
+@keyframes tutoFicha{0%,20%{transform:translate(var(--x),var(--y));opacity:0}24%{opacity:.95}70%{transform:translate(var(--x2),var(--y2));opacity:.95}85%,100%{transform:translate(var(--x2),var(--y2));opacity:0}}
+.tuto-card{position:absolute;left:50%;width:min(92vw,400px);transform:translateX(-50%);pointer-events:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line-viva);border-radius:var(--r-box);box-shadow:var(--s4);padding:18px 18px 14px;transition:top .3s cubic-bezier(.2,.8,.2,1),bottom .3s cubic-bezier(.2,.8,.2,1)}
+.tuto-card.abajo{bottom:calc(18px + env(safe-area-inset-bottom));top:auto}
+.tuto-card.arriba{top:calc(66px + env(safe-area-inset-top));bottom:auto}
+.tuto-card.centro{top:50%;bottom:auto;transform:translate(-50%,-50%)}
+.tuto-paso{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tuto-etiqueta,var(--gold))}
+.tuto-card h3{font-family:var(--serif);font-size:1.28rem;font-weight:600;letter-spacing:-.01em;margin:.35rem 0 .45rem}
+.tuto-card p{margin:0;color:var(--muted);font-size:.9rem;line-height:1.5}
+.tuto-puntos{display:flex;gap:6px;margin:14px 0 12px}
+.tuto-puntos i{width:7px;height:7px;border-radius:50%;background:var(--line-viva);transition:background .2s,width .2s}
+.tuto-puntos i.on{background:var(--tuto-acento,var(--gold));width:20px;border-radius:4px}
+.tuto-acciones{display:flex;gap:8px;align-items:center}
+.tuto-acciones button{min-height:40px;border-radius:12px;border:1px solid var(--line);background:var(--tinte-neutro);color:var(--ink);font:600 .85rem var(--sans);padding:0 14px;cursor:pointer;touch-action:manipulation}
+/* El botón principal del tutorial toma el color del tablero elegido en la sección abierta (por defecto, Cielo) */
+.tuto-acciones .tuto-sig{background:var(--tuto-acento,#7AA4BB);border-color:var(--tuto-acento,#7AA4BB);color:var(--tuto-acento-txt,#fff);margin-left:auto}
+.tuto-acciones .tuto-cerrar{background:transparent;color:var(--muted)}
+.tuto-acciones button:disabled{opacity:.35}
+.drawer-tuto{margin:4px 2px 0;align-self:flex-start;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:var(--r-cap);padding:.45rem .9rem;font:600 .78rem var(--sans);cursor:pointer}
+.drawer-tuto:hover{color:var(--ink);border-color:var(--line-viva)}
+@media(prefers-reduced-motion:reduce){.tuto-mano,.tuto-ficha,.tuto-foco:after{animation-duration:3s}}
+/* ---- Pupilo 17: las diez secciones en el menú ---- */
+.drawer-lista{flex:1 1 auto;min-height:0;overflow:auto;margin:0 -6px;padding:2px 6px 6px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.drawer .app-choice{grid-template-columns:2.4rem minmax(0,1fr);gap:12px;padding:11px 13px;margin:0 0 8px}
+.drawer .app-choice .num{font-family:var(--mono);font-size:.95rem;font-weight:700;color:var(--muted2);text-align:center}
+.drawer .app-choice > span:not(.num){font-size:1rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis}
+.drawer .app-choice small{margin-top:4px}
+.drawer .app-choice.active .num{color:var(--gold)}
+.drawer .app-choice.active:after{display:none}
+.drawer-backdrop.open .app-choice{transition-delay:.06s}
+.drawer-tuto{margin-top:10px}
+.drawer-note{padding-top:14px}
+</style>
+</head>
+<body>
+<button class="menu-button" id="menu-button" type="button" aria-label="Abrir menú" aria-expanded="false"><span></span></button>
+<div class="drawer-backdrop" id="drawer-backdrop" aria-hidden="true">
+  <aside class="drawer" role="dialog" aria-modal="true" aria-label="Elegir sección">
+    <div class="drawer-brand">
+      <img src="logo.svg" alt="Pupilo 17">
+      <div><strong>Pupilo 17</strong><small>Caro-Kann · Variante Karpov</small></div>
+    </div>
+    <div class="tema" id="tema" role="group" aria-label="Apariencia">
+      <button type="button" data-modo="claro" aria-pressed="false" title="Claro" aria-label="Apariencia: Claro"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.1"/><path d="M12 3.2v2.1M12 18.7v2.1M3.2 12h2.1M18.7 12h2.1M5.9 5.9l1.5 1.5M16.6 16.6l1.5 1.5M18.1 5.9l-1.5 1.5M7.4 16.6l-1.5 1.5"/></svg><span class="sr">Claro</span></button>
+      <button type="button" data-modo="oscuro" aria-pressed="false" title="Oscuro" aria-label="Apariencia: Oscuro"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 13.1A8.3 8.3 0 1 1 11 3.2a6.6 6.6 0 0 0 9.8 9.9z"/></svg><span class="sr">Oscuro</span></button>
+      <button type="button" data-modo="sistema" aria-pressed="false" title="Como el sistema" aria-label="Apariencia: Como el sistema"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.2" y="4.8" width="17.6" height="11.6" rx="1.7"/><path d="M8.6 19.6h6.8"/></svg><span class="sr">Sistema</span></button>
+    </div>
+    <div class="drawer-lista" id="drawer-lista"></div>
+    <button class="drawer-tuto" id="drawer-tuto" type="button">Ver tutorial</button>
+    <p class="drawer-note">Cada sección guarda la línea donde te quedaste.</p>
+  </aside>
+</div>
+<iframe class="app-frame active" id="app-frame-1" data-src="leccion.html" title="Lecciones de la variante Karpov" allow="autoplay"></iframe>
+<script src="lecciones-data.js?v=1"></script>
+<script>
+(function(){
+  var menuButton=document.getElementById('menu-button');
+  var backdrop=document.getElementById('drawer-backdrop');
+  var lista=document.getElementById('drawer-lista');
+  var frame=document.getElementById('app-frame-1');
+  var activa=null;
+
+  function impedirZoom(e){e.preventDefault();}
+  document.addEventListener('gesturestart',impedirZoom,{passive:false});
+  document.addEventListener('gesturechange',impedirZoom,{passive:false});
+  document.addEventListener('gestureend',impedirZoom,{passive:false});
+  document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
+  document.addEventListener('dblclick',function(e){e.preventDefault();},{passive:false});
+
+  /* Las diez secciones (33–42) en el menú, con sus nombres y su cantidad de líneas */
+  var caps=window.P17_CAPS||[];
+  function nombre(c){var t=String(c.titulo||'').replace(/\s+/g,' ').trim();if(/^LA VARIANTE KARPOV/.test(t))t='La variante Karpov'+t.slice(18);return t;}
+  var h='';
+  caps.forEach(function(c){
+    h+='<button class="app-choice" data-sec="'+c.n+'" type="button"><span class="num">'+c.n+'</span><span>'+nombre(c).replace(/[&<>]/g,function(x){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[x];})+'<br><small>'+c.lineas.length+' líneas</small></span></button>';
+  });
+  lista.innerHTML=h;
+
+  function marcarActiva(lv){
+    activa=String(lv);
+    var bs=lista.querySelectorAll('.app-choice');
+    for(var i=0;i<bs.length;i++)bs[i].classList.toggle('active',bs[i].getAttribute('data-sec')===activa);
+  }
+  function setDrawer(open){
+    backdrop.classList.toggle('open',open);
+    menuButton.classList.toggle('open',open);
+    menuButton.setAttribute('aria-expanded',open?'true':'false');
+    backdrop.setAttribute('aria-hidden',open?'false':'true');
+    if(open){
+      aplicarModo();
+      var a=lista.querySelector('.app-choice.active');
+      if(a)try{a.scrollIntoView({block:'nearest'});}catch(e){}
+    }
+  }
+  function irSeccion(lv){
+    try{var w=frame.contentWindow;if(w&&typeof w.p17IrSeccion==='function')w.p17IrSeccion(String(lv));}catch(e){}
+    marcarActiva(lv);
+    setDrawer(false);
+  }
+  menuButton.onclick=function(){setDrawer(!backdrop.classList.contains('open'));};
+  backdrop.onclick=function(e){if(e.target===backdrop)setDrawer(false);};
+  lista.onclick=function(e){var b=e.target.closest('.app-choice');if(b)irSeccion(b.getAttribute('data-sec'));};
+  /* la página de la lección avisa qué sección y línea están abiertas */
+  window.addEventListener('message',function(e){
+    var d=e&&e.data;if(!d||d.tipo!=='p17-linea')return;
+    if(e.source!==frame.contentWindow)return;
+    marcarActiva(d.lv);
+  });
+
+  /* ---- apariencia: misma clave que el Método PC1 (pc_modo) ---- */
+  var raiz=document.documentElement, K='pc_modo';
+  var mq=window.matchMedia('(prefers-color-scheme: dark)');
+  function galleta(k){try{var m=document.cookie.match('(?:^|; )'+k+'=([^;]*)');return m?decodeURIComponent(m[1]):null}catch(e){return null}}
+  function leerModo(){var v=null;try{v=localStorage.getItem(K);}catch(e){}if(!v)v=galleta(K);return v||'sistema';}
+  function guardarModo(v){
+    try{localStorage.setItem(K,v);}catch(e){}
+    try{document.cookie=K+'='+encodeURIComponent(v)+';path=/;max-age=63072000;SameSite=Lax';}catch(e){}
+  }
+  var modo=leerModo();
+  function aplicarModo(){
+    modo=leerModo();
+    if(['claro','oscuro','sistema'].indexOf(modo)<0)modo='sistema';
+    var oscuro=modo==='oscuro'||(modo==='sistema'&&mq.matches);
+    raiz.setAttribute('data-modo',oscuro?'oscuro':'claro');
+    var bs=document.querySelectorAll('#tema button');
+    for(var i=0;i<bs.length;i++)bs[i].setAttribute('aria-pressed',String(bs[i].getAttribute('data-modo')===modo));
+    var m=document.querySelector('meta[name="theme-color"]');
+    if(m)m.setAttribute('content',oscuro?'#0F1411':'#ECEFE9');
+  }
+  var bt=document.querySelectorAll('#tema button');
+  for(var t=0;t<bt.length;t++){
+    bt[t].onclick=function(){
+      guardarModo(this.getAttribute('data-modo'));
+      aplicarModo();
+      try{if(frame.contentWindow)frame.contentWindow.dispatchEvent(new StorageEvent('storage',{key:K}));}catch(e){}
+    };
+  }
+  if(mq.addEventListener)mq.addEventListener('change',function(){if(modo==='sistema')aplicarModo();});
+  else if(mq.addListener)mq.addListener(function(){if(modo==='sistema')aplicarModo();});
+  window.addEventListener('storage',function(e){if(!e||!e.key||e.key===K)aplicarModo();});
+  aplicarModo();
+
+  /* Android: el botón atrás cierra primero el menú y luego lo que haya abierto en la lección */
+  window.PC_ANDROID_BACK=function(){
+    if(backdrop.classList.contains('open')){setDrawer(false);return true;}
+    try{if(frame.contentWindow&&typeof frame.contentWindow.PC_ANDROID_BACK==='function'){frame.contentWindow.PC_ANDROID_BACK();return true;}}catch(e){}
+    return true;
+  };
+
+  /* Sin zoom ni desplazamiento lateral también dentro de la lección (que se sienta como una app) */
+  function prepararFrame(){
+    try{
+      var doc=frame.contentDocument,win=frame.contentWindow;
+      if(!doc||!doc.documentElement||doc.documentElement.dataset.p17Listo)return;
+      var meta=doc.querySelector('meta[name="viewport"]');
+      if(meta)meta.setAttribute('content','width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+      doc.addEventListener('gesturestart',impedirZoom,{passive:false});
+      doc.addEventListener('gesturechange',impedirZoom,{passive:false});
+      doc.addEventListener('gestureend',impedirZoom,{passive:false});
+      doc.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
+      doc.documentElement.style.overflowX='hidden';
+      doc.documentElement.style.overscrollBehaviorX='none';
+      if(doc.body){doc.body.style.overflowX='hidden';doc.body.style.overscrollBehaviorX='none';}
+      if(win)win.addEventListener('scroll',function(){if(win.scrollX!==0)win.scrollTo(0,win.scrollY);},{passive:true});
+      doc.documentElement.dataset.p17Listo='1';
+      if(win&&typeof win.p17Estado==='function'){var est=win.p17Estado();if(est)marcarActiva(est.lv);}
+    }catch(e){}
+  }
+  frame.addEventListener('load',prepararFrame);
+
+  /* Enlace directo a una línea: ?linea=N (lo usa «Compartir»). Se pasa a la lección y se limpia la dirección. */
+  var src=frame.getAttribute('data-src')+'?v=1';
+  try{
+    var q=new URLSearchParams(location.search),n=parseInt(q.get('linea'),10);
+    if(n>0){
+      src+='&linea='+n;
+      q.delete('linea');var r=q.toString();
+      history.replaceState(history.state,'',location.pathname+(r?'?'+r:'')+location.hash);
+    }
+  }catch(e){}
+  frame.setAttribute('src',src);
+
+  /* Al recargar la página se pide confirmación (un toque de más podría perder la línea abierta) */
+  window.addEventListener('beforeunload',function(e){e.preventDefault();e.returnValue='';return '';});
+})();
+</script>
+<div class="tuto" id="tuto" aria-hidden="true">
+  <div class="tuto-velo"></div>
+  <div class="tuto-foco" id="tuto-foco"></div>
+  <span class="tuto-ficha" id="tuto-ficha" aria-hidden="true">♞</span>
+  <span class="tuto-mano" id="tuto-mano" aria-hidden="true">👆</span>
+  <section class="tuto-card abajo" id="tuto-card" role="dialog" aria-modal="false" aria-labelledby="tuto-titulo">
+    <span class="tuto-paso" id="tuto-paso">Paso 1</span>
+    <h3 id="tuto-titulo">Bienvenido</h3>
+    <p id="tuto-texto"></p>
+    <div class="tuto-puntos" id="tuto-puntos"></div>
+    <div class="tuto-acciones">
+      <button class="tuto-cerrar" id="tuto-cerrar" type="button">Cerrar tutorial</button>
+      <button class="tuto-atras" id="tuto-atras" type="button">Atrás</button>
+      <button class="tuto-sig" id="tuto-sig" type="button">Siguiente</button>
+    </div>
+  </section>
+</div>
+<script>
+/* ==================================================================
+   Tutorial de bienvenida
+   - Solo aparece a quien entra por primera vez y no tiene historial.
+   - Si ya estudió líneas en este dispositivo, el tutorial no aparece.
+   (Copiado del Método PC1 y PC2, con los pasos de Pupilo 17.)
+   ================================================================== */
+(function(){
+  var KEY='p17_tutorial_visto';
+  var raiz=document.getElementById('tuto');
+  var foco=document.getElementById('tuto-foco');
+  var mano=document.getElementById('tuto-mano');
+  var ficha=document.getElementById('tuto-ficha');
+  var card=document.getElementById('tuto-card');
+  var elPaso=document.getElementById('tuto-paso');
+  var elTitulo=document.getElementById('tuto-titulo');
+  var elTexto=document.getElementById('tuto-texto');
+  var elPuntos=document.getElementById('tuto-puntos');
+  var bAtras=document.getElementById('tuto-atras');
+  var bSig=document.getElementById('tuto-sig');
+  var bCerrar=document.getElementById('tuto-cerrar');
+  var abierto=false,paso=0,reloj=null,vigia=null,estable=0;
+
+  var PASOS_PC=[
+    {titulo:'Bienvenido a Pupilo 17',texto:'Diez lecciones de la variante Karpov de la Caro-Kann, con los comentarios del maestro. En menos de un minuto te muestro qué tocar.',modo:'saludo'},
+    {titulo:'Las secciones',texto:'Con este botón abres el menú y eliges una de las diez secciones, de la 33 a la 42.',padre:'menu-button',modo:'toque'},
+    {titulo:'Las líneas',texto:'Cada sección tiene su línea principal y, debajo, cada variante por separado. Todas empiezan desde la primera jugada.',app:'p17-lineas',modo:'toque'},
+    {titulo:'Avanza y retrocede',texto:'◂ y ▸ recorren la línea jugada a jugada. Con el teclado también: ← → para las jugadas y ↑ ↓ para cambiar de línea.',app:'b-ana-next',modo:'toque'},
+    {titulo:'El comentario del maestro',texto:'Aquí aparece lo que el maestro escribió en cada jugada, tal cual. Sus flechas y casillas se dibujan sobre el tablero.',app:'p17-coment',modo:'toque'},
+    {titulo:'O juégala tú',texto:'Toca una pieza y arrástrala, o toca la casilla de destino. Si es la jugada de la línea, avanza.',app:'board',modo:'arrastre'},
+    {titulo:'Tus botones',texto:'💡 ilumina la pieza que se mueve, «Solución» reproduce el resto de la línea, «Girar» voltea el tablero, el parlante activa o silencia el sonido, el libro abre la línea con todos sus comentarios y el último botón la comparte con su enlace.',app:'pc-fila-controles',modo:'toque'},
+    {titulo:'Tu mascota',texto:'Te acompaña sobre el tablero y baila con su guitarra cuando terminas una línea. Con el botón de su carita, junto al regalo, eliges entre 11 mascotas o la quitas; también con doble toque sobre ella.',app:'pc-mascota',mascota:true,modo:'toque'},
+    {titulo:'Tu estudio',texto:'Aquí ves tu meta diaria, tu racha y las líneas que te costaron, para volver a mirarlas.',app:'b-gift',modo:'toque'},
+    {titulo:'¡A estudiar!',texto:'Empieza por la línea principal de la sección 33. Puedes volver a ver esta guía desde el menú, en «Ver tutorial».',modo:'saludo',final:true}
+  ];
+  var PASOS=PASOS_PC;
+
+
+  function leer(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+  function visto(){return leer(KEY)==='1';}
+  function marcarVisto(){try{localStorage.setItem(KEY,'1');}catch(e){}}
+  function listaLlena(k){
+    try{var v=JSON.parse(leer(k)||'null');if(!v)return false;if(Array.isArray(v))return v.length>0;return typeof v==='object'&&Object.keys(v).length>0;}catch(e){return false;}
+  }
+  function tieneHistorial(){
+    return listaLlena('p17_solved')||listaLlena('p17_hist_log');
+  }
+  function frameActivo(){return document.querySelector('.app-frame.active');}
+  function docApp(){try{var f=frameActivo();return f&&f.contentDocument;}catch(e){return null;}}
+  function appLista(){var d=docApp();return !!(d&&d.readyState==='complete'&&d.getElementById('board'));}
+  function syncAbierto(){var bg=document.getElementById('pc-sync-modal-bg');return !!(bg&&bg.classList.contains('open'));}
+  function menuAbierto(){var b=document.getElementById('drawer-backdrop');return !!(b&&b.classList.contains('open'));}
+
+  function objetivo(p){
+    var el=null;
+    if(p.padre) el=document.getElementById(p.padre);
+    else if(p.app){var d=docApp();el=d&&d.getElementById(p.app);}
+    if(!el)return null;
+    var r=el.getBoundingClientRect();
+    if(!r.width||!r.height)return null;
+    if(p.app){
+      var f=frameActivo(),fr=f?f.getBoundingClientRect():{left:0,top:0};
+      if(r.bottom<0||r.top>window.innerHeight){try{el.scrollIntoView({block:'center'});}catch(e){}r=el.getBoundingClientRect();}
+      return {left:r.left+fr.left,top:r.top+fr.top,width:r.width,height:r.height};
+    }
+    return {left:r.left,top:r.top,width:r.width,height:r.height};
+  }
+
+  function colocar(){
+    if(!abierto)return;
+    var p=PASOS[paso],o=(p.padre||p.app)?objetivo(p):null;
+    var W=window.innerWidth,H=window.innerHeight;
+    mano.className='tuto-mano';ficha.className='tuto-ficha';
+    if(o){
+      var m=6;
+      foco.style.left=(o.left-m)+'px';foco.style.top=(o.top-m)+'px';
+      foco.style.width=(o.width+m*2)+'px';foco.style.height=(o.height+m*2)+'px';
+      raiz.classList.add('con-foco');
+      var cx=o.left+o.width/2,cy=o.top+o.height/2;
+      card.className='tuto-card '+(cy>H*0.55?'arriba':'abajo');
+      if(p.modo==='arrastre'){
+        var x1=o.left+o.width*0.35,y1=o.top+o.height*0.78,x2=o.left+o.width*0.35,y2=o.top+o.height*0.5;
+        mano.style.setProperty('--x',x1+'px');mano.style.setProperty('--y',y1+'px');
+        mano.style.setProperty('--x2',x2+'px');mano.style.setProperty('--y2',y2+'px');
+        ficha.style.setProperty('--x',x1+'px');ficha.style.setProperty('--y',y1+'px');
+        ficha.style.setProperty('--x2',x2+'px');ficha.style.setProperty('--y2',y2+'px');
+        mano.className='tuto-mano ver arrastre';ficha.className='tuto-ficha ver';
+      }else{
+        var y=Math.min(cy+o.height*0.15,H-60);
+        mano.style.setProperty('--x',cx+'px');mano.style.setProperty('--y',y+'px');
+        mano.className='tuto-mano ver toque';
+      }
+    }else{
+      raiz.classList.remove('con-foco');
+      card.className='tuto-card centro';
+      mano.style.setProperty('--x',(W/2)+'px');
+      mano.style.setProperty('--y',Math.max(40,H/2-card.offsetHeight/2-70)+'px');
+      mano.className='tuto-mano ver saludo';
+    }
+  }
+
+  /* En el paso de la mascota, la mostramos de verdad sobre el tablero */
+  var mascotaDelTuto=false;
+  function mascotaTuto(mostrar){
+    try{
+      var f=frameActivo(),w=f&&f.contentWindow,m=w&&w.pcMascota;
+      if(!m)return;
+      if(mostrar&&!mascotaDelTuto){
+        var d=docApp(),b=d&&d.getElementById('board');
+        if(b)try{b.scrollIntoView({block:'center'});}catch(e){}
+        m.mostrar();mascotaDelTuto=true;
+      }else if(!mostrar&&mascotaDelTuto){m.quitar();mascotaDelTuto=false;}
+    }catch(e){}
+  }
+
+  /* Color del tutorial: el de la plantilla (tema de tablero) de la sección abierta.
+     Si la persona no eligió ninguna, la plantilla por defecto (Cielo). */
+  var CIELO='#7AA4BB';
+  function luz(hex){
+    var m=/^#?([0-9a-f]{6})$/i.exec(String(hex||'').trim());if(!m)return null;
+    var n=parseInt(m[1],16),c=[n>>16&255,n>>8&255,n&255].map(function(v){v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);});
+    return .2126*c[0]+.7152*c[1]+.0722*c[2];
+  }
+  function aplicarColorTema(){
+    var col='';
+    try{var f=frameActivo(),d=f&&f.contentDocument;if(d&&d.documentElement)col=getComputedStyle(d.documentElement).getPropertyValue('--dark').trim();}catch(e){}
+    if(luz(col)==null)col=CIELO;
+    var L=luz(col);
+    raiz.style.setProperty('--tuto-acento',col);
+    raiz.style.setProperty('--tuto-acento-txt',L>.4?'#16181b':'#fff');
+    raiz.style.setProperty('--tuto-etiqueta',L>.45?'var(--muted)':col);
+  }
+
+  function pintar(){
+    aplicarColorTema();
+    var p=PASOS[paso];
+    mascotaTuto(!!p.mascota);
+    elPaso.textContent='Paso '+(paso+1)+' de '+PASOS.length;
+    elTitulo.textContent=p.titulo;elTexto.textContent=p.texto;
+    var h='';for(var i=0;i<PASOS.length;i++)h+='<i'+(i===paso?' class="on"':'')+'></i>';
+    elPuntos.innerHTML=h;
+    bAtras.disabled=paso===0;
+    bSig.textContent=p.final?'Empezar':'Siguiente';
+    colocar();
+  }
+
+  function abrir(desde){
+    if(abierto)return;
+    abierto=true;paso=desde||0;
+    raiz.classList.add('open');raiz.setAttribute('aria-hidden','false');
+    pintar();
+    clearInterval(reloj);reloj=setInterval(function(){
+      if(tieneHistorial()&&!raiz.dataset.manual){cerrar();return;}
+      raiz.style.visibility=syncAbierto()?'hidden':'';
+      colocar();
+    },700);
+  }
+  function cerrar(){
+    if(!abierto)return;
+    abierto=false;marcarVisto();delete raiz.dataset.manual;
+    mascotaTuto(false);
+    clearInterval(reloj);
+    raiz.classList.remove('open','con-foco');raiz.setAttribute('aria-hidden','true');raiz.style.visibility='';
+  }
+  window.PCTutorial={abrir:function(){raiz.dataset.manual='1';abrir(0);},cerrar:cerrar,abierto:function(){return abierto;}};
+
+  bSig.onclick=function(){if(PASOS[paso].final){cerrar();return;}paso=Math.min(PASOS.length-1,paso+1);pintar();};
+  bAtras.onclick=function(){paso=Math.max(0,paso-1);pintar();};
+  bCerrar.onclick=cerrar;
+  window.addEventListener('resize',function(){setTimeout(colocar,60);});
+
+  var bVer=document.getElementById('drawer-tuto');
+  if(bVer)bVer.onclick=function(){
+    var bd=document.getElementById('drawer-backdrop'),mb=document.getElementById('menu-button');
+    if(bd)bd.classList.remove('open');
+    if(mb){mb.classList.remove('open');mb.setAttribute('aria-expanded','false');}
+    setTimeout(function(){window.PCTutorial.abrir();},250);
+  };
+
+  /* El botón atrás de Android cierra primero el tutorial */
+  var atrasOriginal=window.PC_ANDROID_BACK;
+  window.PC_ANDROID_BACK=function(){
+    if(abierto){cerrar();return true;}
+    return typeof atrasOriginal==='function'?atrasOriginal():true;
+  };
+
+  /* Decide si mostrarlo: espera a que se cierre la ventana del código
+     y a que cargue el tablero; si ya hay historial, no lo muestra. */
+  if(visto())return;
+  vigia=setInterval(function(){
+    if(visto()){clearInterval(vigia);return;}
+    if(tieneHistorial()){marcarVisto();clearInterval(vigia);return;}
+    if(syncAbierto()||menuAbierto()||!appLista()){estable=0;return;}
+    estable++;
+    if(estable>=3){clearInterval(vigia);abrir(0);}
+  },500);
+})();
+</script>
+</body>
+</html>

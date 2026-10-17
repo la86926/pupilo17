@@ -1,0 +1,85 @@
+/* ==================================================================
+   Pupilo 17 · estilos propios de las lecciones (sobre el diseño del Método PC1)
+   ================================================================== */
+html,body{-webkit-text-size-adjust:100%;touch-action:manipulation}
+
+/* fila del tablero: Reiniciar · Stockfish · Flechas · ◂ · ▸ siempre visibles, en cinco partes iguales */
+#b-ana-prev,#b-ana-next{display:flex!important}
+#b-reset,#b-edit,#b-anotar,#b-ana-prev,#b-ana-next{
+  flex:0 0 calc((100% - 1.2rem)/5)!important;width:calc((100% - 1.2rem)/5)!important;min-width:0!important;max-width:calc((100% - 1.2rem)/5)!important;
+  height:2.55rem!important;min-height:2.55rem!important;max-height:2.55rem!important;padding:0 .16rem!important;
+  font-size:clamp(.62rem,2.7vw,.86rem)!important;line-height:1;gap:.2rem!important;white-space:nowrap;overflow:hidden;justify-content:center!important;align-items:center!important}
+#b-reset svg,#b-edit svg,#b-anotar svg{width:.9rem;height:.9rem;flex:0 0 .9rem}
+#b-ana-prev svg,#b-ana-next svg{width:1.55rem!important;height:1.55rem!important}
+#b-ana-prev[aria-disabled="true"],#b-ana-next[aria-disabled="true"]{opacity:.38}
+#b-reset{margin-left:0}
+
+/* comentario del maestro */
+.p17-coment{max-width:620px;margin:.8rem auto 0;padding:.85rem 1rem .95rem;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-card,20px);box-shadow:var(--s1)}
+.p17-c-cab{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap}
+.p17-c-mov{font-family:var(--serif);font-size:1.08rem;font-weight:600;color:var(--ink)}
+.p17-c-mov .fig{display:inline-block;width:1.05em;height:1.05em;vertical-align:-.16em}
+.p17-c-mov .fig svg{width:100%;height:100%}
+.p17-c-ev{font-family:var(--mono);font-size:.82rem;color:var(--acento-txt-cla,var(--gold))}
+html[data-modo="oscuro"] .p17-c-ev{color:var(--acento-txt-osc,var(--gold))}
+.p17-c-rama{margin-top:.35rem;font-size:.78rem;font-weight:600;letter-spacing:.02em;color:var(--acento-txt-cla,var(--gold))}
+html[data-modo="oscuro"] .p17-c-rama{color:var(--acento-txt-osc,var(--gold))}
+.p17-c-txt{margin-top:.45rem;font-size:.95rem;line-height:1.62;color:var(--ink);white-space:pre-line;overflow-wrap:anywhere;user-select:text;-webkit-user-select:text}
+.p17-c-txt.vacio{color:var(--muted2);font-size:.86rem}
+.p17-c-txt .p17-c-pre{display:block;color:var(--muted);margin-bottom:.4rem}
+.p17-c-alt{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;margin-top:.7rem;padding-top:.6rem;border-top:1px dashed var(--line)}
+.p17-c-alt .et{font-size:.74rem;font-weight:600;color:var(--muted);margin-right:.1rem}
+.p17-alt{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .6rem;border:1px solid var(--line);border-radius:999px;background:var(--tinte-neutro);color:var(--ink);font:600 .82rem var(--mono);cursor:pointer}
+.p17-alt:hover{border-color:var(--acento-tema,var(--gold))}
+.p17-alt .fig{display:inline-block;width:1em;height:1em;vertical-align:-.14em}
+.p17-alt .fig svg{width:100%;height:100%}
+.p17-alt small{font:500 .66rem var(--sans);color:var(--muted2)}
+.p17-c-fin{display:block;margin-top:.55rem;font-size:.78rem;color:var(--muted2);font-family:var(--mono)}
+
+/* lista de jugadas: toda la línea visible, lo que falta en tono suave */
+.moves .ply{cursor:pointer}
+.moves .ply.fut{opacity:.42}
+.moves .ply.cm{text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;text-decoration-color:var(--muted2)}
+.moves .p17-rama{display:inline-block;margin:0 .3rem 0 .15rem;padding:0 .35rem;border-radius:999px;font-family:var(--sans);font-size:.66rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;vertical-align:.08em;background:color-mix(in srgb,var(--acento-tema,#53707F) 16%,transparent);color:var(--acento-txt-cla,var(--muted))}
+html[data-modo="oscuro"] .moves .p17-rama{color:var(--acento-txt-osc,var(--muted))}
+.moves .p17-ev{font-size:.72em;color:var(--muted2);margin-left:.1rem}
+
+/* secciones */
+.p17-secciones{display:flex;flex-direction:column;gap:.35rem;margin-top:0}
+.p17-secciones .fbtn{display:grid;grid-template-columns:2.1rem minmax(0,1fr) auto;align-items:center;gap:.55rem;text-align:left;padding:.55rem .7rem;min-width:0;flex:none}
+.p17-secciones .fbtn b{font-family:var(--mono);font-size:.86rem;color:var(--muted2)}
+.p17-secciones .fbtn span{font-size:.84rem;font-weight:600;line-height:1.25;color:var(--ink);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.p17-secciones .fbtn small{margin:0;font-size:.66rem;white-space:nowrap}
+.p17-secciones .fbtn.active b{color:var(--acento-txt-cla,var(--crest))}
+html[data-modo="oscuro"] .p17-secciones .fbtn.active b{color:var(--acento-txt-osc,var(--crest))}
+.p17-secciones .fbtn.active{border-color:var(--acento-tema,var(--gold));background:color-mix(in srgb,var(--acento-tema,#53707F) 10%,transparent)}
+
+/* líneas de la sección */
+.p17-lineas{display:flex;flex-direction:column;gap:2px;max-height:min(52vh,430px);overflow:auto;margin:0 -.3rem;padding:0 .3rem;overscroll-behavior:contain}
+.p17-li{display:grid;grid-template-columns:2rem minmax(0,1fr) 1.1rem;align-items:center;gap:.45rem;width:100%;padding:.45rem .5rem;border:0;border-radius:10px;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.p17-li:hover{background:var(--tinte-neutro)}
+.p17-li.on{background:color-mix(in srgb,var(--acento-tema,#53707F) 15%,transparent)}
+.p17-li .n{font-family:var(--mono);font-size:.75rem;color:var(--muted2)}
+.p17-li .t{font-family:var(--mono);font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p17-li .t i{font-style:normal;color:var(--muted2)}
+.p17-li.principal .t{font-family:var(--sans);font-weight:700;font-size:.86rem}
+.p17-li .ok{font-size:.8rem;color:var(--acento-txt-cla,var(--gold));text-align:center}
+html[data-modo="oscuro"] .p17-li .ok{color:var(--acento-txt-osc,var(--gold))}
+
+/* «La lección» */
+.ref .tags .p17-tag{font-size:.7rem;padding:.18rem .5rem;border:1px solid var(--line);border-radius:999px;color:var(--muted)}
+.ref .tags a.p17-tag{color:var(--acento-txt-cla,var(--gold));text-decoration:none}
+.ref .note{white-space:normal}
+.expl .body{font-family:var(--sans)!important;font-size:.86rem!important;line-height:1.6!important}
+
+/* explicación: la línea completa con comentarios */
+#explain-grid:empty{display:none}
+.p17-ex{display:flex;flex-direction:column;gap:.55rem;width:100%}
+.p17-ex-paso{display:flex;flex-direction:column;gap:.25rem;padding:.55rem .7rem;border-radius:12px;border:1px solid var(--ex-card-border,var(--line))}
+.p17-ex-paso.on{border-color:var(--acento-tema,var(--gold))}
+.p17-ex-paso.sin{padding:.25rem .7rem;border-color:transparent}
+.p17-ex-mov{font-family:var(--mono);font-weight:700;font-size:.9rem}
+.p17-ex-mov small{font-weight:500;color:var(--ex-muted,var(--muted));margin-left:.3rem}
+.p17-ex-com{font-size:.9rem;line-height:1.6;white-space:pre-line;color:var(--ex-ink,var(--ink))}
+.p17-ex-inline{display:flex;flex-wrap:wrap;gap:.25rem .5rem;font-family:var(--mono);font-size:.86rem;color:var(--ex-muted,var(--muted))}
+.p17-ex-sep{margin:.3rem 0 0;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acento-txt-cla,var(--gold))}
