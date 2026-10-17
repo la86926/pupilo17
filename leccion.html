@@ -1981,7 +1981,7 @@ html[data-modo="claro"],html[data-modo="oscuro"]{
 header.topbar.topbar-anim{overflow:hidden;will-change:height,opacity,transform}
 .boardhead{transition:padding-left .34s cubic-bezier(.32,.72,0,1)}
 </style>
-<link rel="stylesheet" href="lecciones.css?v=1">
+<link rel="stylesheet" href="lecciones.css?v=3">
 </head>
 <body>
 
@@ -7676,7 +7676,7 @@ $('b-banner').onclick=()=>{bannerOculto=!bannerOculto;localStorage.setItem('p17_
       if(!fila){
         fila=document.createElement('div');
         fila.id='pc-mobile-exercise-nav';
-        fila.style.cssText='display:flex;align-items:center;justify-content:flex-end;gap:.55rem;width:100%;max-width:620px;margin:.7rem auto 0;';
+        fila.style.cssText='display:flex;align-items:center;justify-content:flex-start;gap:.55rem;width:100%;max-width:620px;margin:.7rem auto 0;';
         filaInferior.parentNode.insertBefore(fila,filaInferior);
       }
       if(anterior.parentNode!==fila) fila.appendChild(anterior);
@@ -7843,6 +7843,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </script>
 <script src="lecciones-app.js?v=1"></script>
 <script src="pc-compartir.js?v=1"></script>
-<script src="pc-mascota.js?v=1"></script>
+<script src="pc-mascota.js?v=2"></script>
 </body>
 </html>

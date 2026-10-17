@@ -381,6 +381,10 @@
     }
     var g = visible(regalo());
     var bar = document.querySelector('.topbar');
+    /* Pupilo 17: con el encabezado oculto («Ocultar»), el botón de la carita se esconde con él
+       en vez de quedar flotando sobre la mascota; vuelve al tocar «Mostrar». */
+    boton.style.display = (!g && bar) ? 'none' : '';
+    if (!g && bar) return;
     if (g && bar) {
       if (getComputedStyle(bar).position === 'static') bar.style.position = 'relative';
       if (boton.parentElement !== bar) bar.appendChild(boton);
