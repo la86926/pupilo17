@@ -265,7 +265,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);c
   </aside>
 </div>
 <iframe class="app-frame active" id="app-frame-1" data-src="leccion.html" title="Lecciones de la variante Karpov" allow="autoplay"></iframe>
-<script src="lecciones-data.js?v=1"></script>
+<script src="lecciones-data.js?v=3"></script>
 <script>
 (function(){
   var menuButton=document.getElementById('menu-button');
@@ -383,7 +383,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);c
   frame.addEventListener('load',prepararFrame);
 
   /* Enlace directo a una línea: ?linea=N (lo usa «Compartir»). Se pasa a la lección y se limpia la dirección. */
-  var src=frame.getAttribute('data-src')+'?v=1';
+  /* VERSION: súbela en cada cambio para que el navegador no muestre la copia guardada */
+  var VERSION='3';
+  var src=frame.getAttribute('data-src')+'?v='+VERSION;
   try{
     var q=new URLSearchParams(location.search),n=parseInt(q.get('linea'),10);
     if(n>0){
